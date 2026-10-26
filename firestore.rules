@@ -1,0 +1,17 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Visitors can only CREATE a valid booking. Only you can read it (Firebase console).
+    match /bookings/{id} {
+      allow create: if request.resource.data.keys().hasOnly(['ref','pickup','destination','date','time','vehicle','passengers','name','phone','estimate','status','lang','createdAt'])
+        && request.resource.data.status == 'pending'
+        && request.resource.data.name is string && request.resource.data.name.size() < 100
+        && request.resource.data.phone is string && request.resource.data.phone.size() < 25
+        && request.resource.data.pickup is string && request.resource.data.pickup.size() < 150
+        && request.resource.data.destination is string && request.resource.data.destination.size() < 150
+        && request.resource.data.passengers is int && request.resource.data.passengers <= 6;
+      allow read, update, delete: if false;
+    }
+    match /{document=**} { allow read, write: if false; }
+  }
+}
